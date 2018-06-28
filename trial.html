@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="assets/jquery.min.js"></script>
+    <script src="assets/phaser.min.js"></script>
+    <title>Title</title>
+</head>
+<body>
+    <script>
+        var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {preload: preload, create: create, update: update});
+        var player;
+
+        function preload() {
+            game.load.image("sheet2","assets/img/sheet2.png")
+            game.load.tilemap('levelmap','assets/tiles/largelevelmap.json', null, Phaser.Tilemap.TILED_JSON);
+            game.load.spritesheet('player','assets/img/actor2.png',32,32);
+            game.load.spritesheet('player2','assets/img/colored_actor.png',32,32);
+            game.load.spritesheet('player3','assets/img/jacketguy.png',40,66);
+        }
+        
+        function create() {
+            map = game.add.tilemap('levelmap');
+            var game_width = map.widthInPixels
+            var game_height = map.heightInPixels
+
+            game.scale.setGameSize(map.widthInPixels/2, map.heightInPixels);
+
+            game.world.setBounds(0,0,game_width,game_height);
+            map.addTilesetImage('levelset','sheet2');
+            groundLayer = map.createLayer('Tile Layer 1');
+            fernLayer = map.createLayer('Tile Layer 2');
+            highLayer = map.createLayer('Tile Layer 3');
+
+            map.setCollision([122,3221225594], true, groundLayer);
+            map.setCollision([82,83], true, fernLayer);
+            map.setCollisionBetween(132,136, true, fernLayer);
+            map.setCollision([28,29,30,86,87,115,197,128,129,207,225,241], true, highLayer);
+
+            groundLayer.resizeWorld();
+
+            player = game.add.sprite(game_width/2, game_height/2, 'player2');
+            game.physics.arcade.enable(player);
+            player.body.collideWorldBounds = true;
+            player.animations.add('down',[0,1,2,3],10,true);
+            player.animations.add('up',[4,5,6,7],10,true);
+            player.animations.add('left',[8,9,10,11],10,true);
+            player.animations.add('right',[12,13,14,15],10,true);
+//            player.animations.add('idle',[16,17,18,19],10,true);
+            game.camera.follow(player);
+
+            game.world.bringToTop(highLayer);
+        }
+
+        function update() {
+            playerMovement();
+            game.physics.arcade.collide(player, groundLayer);
+            game.physics.arcade.collide(player, fernLayer);
+            game.physics.arcade.collide(player, highLayer);
+        }
+
+        function playerMovement(){
+            WASD = {
+                up: game.input.keyboard.addKey(Phaser.Keyboard.W),
+                down: game.input.keyboard.addKey(Phaser.Keyboard.S),
+                left: game.input.keyboard.addKey(Phaser.Keyboard.A),
+                right: game.input.keyboard.addKey(Phaser.Keyboard.D)
+            }
+
+            player.body.velocity.setTo(0, 0);
+            if(WASD.left.isDown){
+                player.body.velocity.x = -150;
+                player.animations.play('left')
+            }
+            else if(WASD.right.isDown){
+                player.body.velocity.x = 150;
+                player.animations.play('right');
+            }
+            else if(WASD.up.isDown){
+                player.body.velocity.y = -150;
+                player.animations.play('up');
+            }
+            else if(WASD.down.isDown){
+                player.body.velocity.y = 150;
+                player.animations.play('down');
+            }/*
+            else if(!(WASD.left.isDown && WASD.right.isDown &&
+                    WASD.up.isDown && WASD.down.isDown)){
+                player.animations.play('idle');
+            }*/
+            else{
+                player.animations.stop();
+                player.frame = 0;
+            }
+        }
+    </script>
+</body>
+</html>
